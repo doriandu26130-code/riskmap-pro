@@ -1,4 +1,11 @@
-const navigationLinks = ["Fonctionnalités", "Tarifs", "À propos", "Contact"];
+import Link from "next/link";
+
+const navigationLinks = [
+  { label: "Fonctionnalités", href: "#" },
+  { label: "Tarifs", href: "/tarifs" },
+  { label: "À propos", href: "#" },
+  { label: "Contact", href: "#" },
+];
 
 const stats = [
   { value: "+500", label: "courtiers" },
@@ -52,13 +59,13 @@ export default function HomePage() {
           </span>
           <div className="hidden items-center gap-8 md:flex">
             {navigationLinks.map((link) => (
-              <a
-                key={link}
-                href="#"
+              <Link
+                key={link.label}
+                href={link.href}
                 className="text-sm font-medium text-slate-600 transition hover:text-[#2563EB]"
               >
-                {link}
-              </a>
+                {link.label}
+              </Link>
             ))}
           </div>
           <button className="rounded-md bg-[#2563EB] px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
