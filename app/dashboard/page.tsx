@@ -1,17 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  Cell,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { supabase } from "@/lib/supabase";
 
 type ClientRow = {
@@ -30,13 +19,13 @@ type AuditRow = {
   date?: string | null;
 };
 
-const navItems = [
+const navItems: Array<{ label: string; icon: string; active?: boolean }> = [
   { label: "Tableau de bord", icon: "dashboard", active: true },
   { label: "Clients", icon: "users" },
   { label: "Audits", icon: "shield" },
   { label: "Rapports", icon: "report" },
   { label: "Paramètres", icon: "settings" },
-] as const;
+];
 
 const formatEuros = (value: number) =>
   new Intl.NumberFormat("fr-FR", {
@@ -262,6 +251,9 @@ export default function DashboardPage() {
     ];
   }, [clients]);
 
+  const maxAudits = useMemo(() => Math.max(...lineChartData.map((item) => item.audits), 1), [lineChartData]);
+  const totalRiskClients = useMemo(() => riskPieData.reduce((acc, item) => acc + item.value, 0), [riskPieData]);
+
   const statCards = [
     { label: "Total clients", value: clientsCount, hint: "+12,4% ce mois", trend: "↗", icon: "users" },
     { label: "Audits ce mois", value: auditsCount, hint: "Objectif: 40", trend: "•", icon: "shield" },
@@ -353,39 +345,45 @@ export default function DashboardPage() {
           <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-800">Audits sur les 6 derniers mois</h2>
             <p className="mt-1 text-sm text-slate-500">Évolution du volume d&apos;audits réalisés.</p>
-            <div className="mt-6 h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={lineChartData}>
-                  <XAxis dataKey="mois" stroke="#64748B" tickLine={false} axisLine={false} />
-                  <YAxis stroke="#64748B" tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="audits"
-                    stroke="#2563EB"
-                    strokeWidth={3}
-                    dot={{ r: 4, fill: "#2563EB" }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="mt-6 h-72 rounded-xl bg-slate-50 p-4">
+              <div className="flex h-full items-end gap-3">
+                {lineChartData.map((item) => {
+                  const heightPercent = Math.max((item.audits / maxAudits) * 100, item.audits > 0 ? 10 : 4);
+                  return (
+                    <div key={item.key} className="flex h-full flex-1 flex-col justify-end">
+                      <div className="relative h-full rounded-lg bg-slate-200/80">
+                        <div
+                          className="absolute inset-x-0 bottom-0 rounded-lg bg-[#2563EB] transition-all"
+                          style={{ height: `${heightPercent}%` }}
+                        />
+                      </div>
+                      <p className="mt-2 text-center text-xs font-medium text-slate-500">{item.mois}</p>
+                      <p className="text-center text-xs text-slate-400">{item.audits} audits</p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </article>
 
           <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-800">Répartition des niveaux de risque</h2>
             <p className="mt-1 text-sm text-slate-500">Faible, moyen et élevé sur vos clients actifs.</p>
-            <div className="mt-6 flex h-72 items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={riskPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={70} outerRadius={105}>
-                    {riskPieData.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+            <div className="mt-6 space-y-4">
+              {riskPieData.map((item) => {
+                const percentage = totalRiskClients === 0 ? 0 : Math.round((item.value / totalRiskClients) * 100);
+                return (
+                  <div key={item.name}>
+                    <div className="mb-1 flex items-center justify-between text-sm text-slate-600">
+                      <span>{item.name}</span>
+                      <span>{item.value} clients</span>
+                    </div>
+                    <div className="h-3 w-full rounded-full bg-slate-100">
+                      <div className="h-3 rounded-full" style={{ width: `${percentage}%`, backgroundColor: item.color }} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             <div className="mt-2 grid grid-cols-3 gap-3 text-xs">
               {riskPieData.map((item) => (
