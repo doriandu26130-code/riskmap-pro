@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -19,12 +20,12 @@ type AuditRow = {
   date?: string | null;
 };
 
-const navItems: Array<{ label: string; icon: string; active?: boolean }> = [
-  { label: "Tableau de bord", icon: "dashboard", active: true },
-  { label: "Clients", icon: "users" },
-  { label: "Audits", icon: "shield" },
-  { label: "Rapports", icon: "report" },
-  { label: "Paramètres", icon: "settings" },
+const navItems: Array<{ label: string; icon: string; href: string; active?: boolean }> = [
+  { label: "Tableau de bord", icon: "dashboard", href: "/dashboard", active: true },
+  { label: "Clients", icon: "users", href: "#" },
+  { label: "Audits", icon: "shield", href: "#" },
+  { label: "Rapports", icon: "report", href: "/dashboard/rapport/2026-001" },
+  { label: "Paramètres", icon: "settings", href: "#" },
 ];
 
 const formatEuros = (value: number) =>
@@ -271,9 +272,9 @@ export default function DashboardPage() {
 
         <nav className="mt-10 space-y-2">
           {navItems.map((item) => (
-            <a
+            <Link
               key={item.label}
-              href="#"
+              href={item.href}
               className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
                 item.active
                   ? "bg-[#2563EB] text-white"
@@ -282,7 +283,7 @@ export default function DashboardPage() {
             >
               <Icon name={item.icon} className="h-5 w-5" />
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
